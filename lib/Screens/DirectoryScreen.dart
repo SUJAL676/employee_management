@@ -1,13 +1,58 @@
 import 'dart:ui';
 import 'package:employee_management/Screens/AddEmployee.dart';
+import 'package:employee_management/models/EmployeeModel.dart';
+import 'package:employee_management/providers/employee_provider.dart';
+import 'package:employee_management/services/employee_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:sqflite/sqlite_api.dart';
 
-class DirectoryScreen extends StatelessWidget {
+class DirectoryScreen extends StatefulWidget {
   const DirectoryScreen({super.key});
 
   @override
+  State<DirectoryScreen> createState() => _DirectoryScreenState();
+}
+
+class _DirectoryScreenState extends State<DirectoryScreen> {
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    DatabaseHelper.instance.fecthList(context: context);
+    super.initState();
+  }
+
+  void filterEmployees(String query) {
+    EmployeeProvider provider = Provider.of<EmployeeProvider>(
+      context,
+      listen: false,
+    );
+
+    if (query.isEmpty) {
+      provider.changeEmployee(list: provider.AllEmployee);
+      return;
+    }
+
+    final filtered = provider.AllEmployee.where((emp) {
+      final nameMatch = emp.name.toLowerCase().startsWith(query.toLowerCase());
+      final codeMatch = emp.empCode.toLowerCase().startsWith(
+        query.toLowerCase(),
+      );
+
+      return nameMatch || codeMatch;
+    }).toList();
+
+    provider.changeEmployee(list: filtered);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    EmployeeProvider provider = Provider.of<EmployeeProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -31,46 +76,15 @@ class DirectoryScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     const SizedBox(height: 24),
                     Expanded(
-                      child: ListView(
-                        children: const [
-                          EmployeeCard(
-                            name: "Sarah Jenkins",
-                            code: "EMP-1024",
-                            phone: "+1 (555) 902-1144",
-                            dob: "14 May 1994",
-                            address:
-                                "882 Silicon Blvd, Suite 400,\nMountain View, CA 94043",
-                            remark:
-                                '"Highly proactive team member with excellent attention to detail."',
-                            online: true,
-                          ),
-                          SizedBox(height: 16),
-                          EmployeeCard(
-                            name: "Marcus Thorne",
-                            code: "EMP-1108",
-                            phone: "+1 (555) 321-8890",
-                            dob: "02 Nov 1989",
-                            address:
-                                "12 Wall Street, Financial District,\nNew York, NY 10005",
-                            remark:
-                                '"Expertise in financial modeling and strategic planning."',
-                            online: false,
-                          ),
-                          SizedBox(height: 16),
-                          EmployeeCard(
-                            name: "Elena Rodriguez",
-                            code: "EMP-0982",
-                            phone: "+1 (555) 445-9122",
-                            dob: "27 Jan 1991",
-                            address:
-                                "450 Congress Ave, Suite 210,\nAustin, TX 78701",
-                            remark:
-                                '"Consistent high-performer with great creative vision."',
-                            online: true,
-                          ),
-                          SizedBox(height: 120),
-                        ],
-                      ),
+                      child: provider.employee.isEmpty
+                          ? Container()
+                          : ListView.builder(
+                              itemCount: provider.employee.length,
+                              itemBuilder: (context, index) {
+                                EmployeeModel emp = provider.employee[index];
+                                return EmployeeCard(emp: emp, online: true);
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -84,6 +98,7 @@ class DirectoryScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    EmployeeProvider provider = Provider.of<EmployeeProvider>(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -110,9 +125,9 @@ class DirectoryScreen extends StatelessWidget {
             ),
           ],
         ),
-        const CircleAvatar(
+        CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
+          backgroundImage: NetworkImage(provider.credential.photoURL!),
         ),
       ],
     );
@@ -124,7 +139,7 @@ class DirectoryScreen extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.7),
             borderRadius: BorderRadius.circular(40),
@@ -137,21 +152,67 @@ class DirectoryScreen extends StatelessWidget {
               const Icon(Icons.search, color: Color(0xFF2196F3)),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  "Search name, code, or role...",
-                  style: GoogleFonts.manrope(
-                    fontSize: 14,
-                    color: const Color(0xFF718096),
+                child: TextField(
+                  controller: searchController,
+                  onChanged: (value) {
+                    filterEmployees(value);
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Search by name or code...",
+                    hintStyle: GoogleFonts.manrope(
+                      fontSize: 14,
+                      color: const Color(0xFF718096),
+                    ),
+                    border: InputBorder.none,
                   ),
+                  style: GoogleFonts.manrope(fontSize: 14),
                 ),
               ),
-              const Icon(Icons.tune, color: Color(0xFF94A3B8)),
+              if (searchController.text.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    searchController.clear();
+                    filterEmployees("");
+                    setState(() {});
+                  },
+                  child: const Icon(Icons.close, color: Color(0xFF94A3B8)),
+                ),
             ],
           ),
         ),
       ),
     );
   }
+
+  // Widget _buildSearchBar() {
+  //   return ClipRRect(
+  //     borderRadius: BorderRadius.circular(40),
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+  //       decoration: BoxDecoration(
+  //         color: Colors.white.withOpacity(0.7),
+  //         borderRadius: BorderRadius.circular(40),
+  //         border: Border.all(color: const Color(0xFF2196F3).withOpacity(0.12)),
+  //       ),
+  //       child: Row(
+  //         children: [
+  //           const Icon(Icons.search, color: Color(0xFF2196F3)),
+  //           const SizedBox(width: 12),
+  //           Expanded(
+  //             child: Text(
+  //               "Search name, code, or role...",
+  //               style: GoogleFonts.manrope(
+  //                 fontSize: 14,
+  //                 color: const Color(0xFF718096),
+  //               ),
+  //             ),
+  //           ),
+  //           const Icon(Icons.tune, color: Color(0xFF94A3B8)),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildFAB(BuildContext context) {
     return Positioned(
@@ -161,9 +222,11 @@ class DirectoryScreen extends StatelessWidget {
         elevation: 12,
         backgroundColor: const Color(0xFF2196F3),
         onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (context) => AddEmployeeScreen()));
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AddEmployeeScreen(isEdit: false),
+            ),
+          );
         },
         child: const Icon(Icons.add, size: 30),
       ),
@@ -172,24 +235,10 @@ class DirectoryScreen extends StatelessWidget {
 }
 
 class EmployeeCard extends StatefulWidget {
-  final String name;
-  final String code;
-  final String phone;
-  final String dob;
-  final String address;
-  final String remark;
+  final EmployeeModel emp;
   final bool online;
 
-  const EmployeeCard({
-    super.key,
-    required this.name,
-    required this.code,
-    required this.phone,
-    required this.dob,
-    required this.address,
-    required this.remark,
-    required this.online,
-  });
+  const EmployeeCard({super.key, required this.emp, required this.online});
 
   @override
   State<EmployeeCard> createState() => _EmployeeCardState();
@@ -204,6 +253,7 @@ class _EmployeeCardState extends State<EmployeeCard> {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
+        margin: EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -211,7 +261,7 @@ class _EmployeeCardState extends State<EmployeeCard> {
             BoxShadow(
               color: const Color(0xFF2196F3).withOpacity(0.1),
               blurRadius: 12,
-              offset: const Offset(0, 6),
+              offset: Offset(0, 6),
             ),
           ],
         ),
@@ -252,7 +302,7 @@ class _EmployeeCardState extends State<EmployeeCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.name,
+                        widget.emp.name,
                         style: GoogleFonts.manrope(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -261,7 +311,7 @@ class _EmployeeCardState extends State<EmployeeCard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.code,
+                        widget.emp.empCode,
                         style: GoogleFonts.manrope(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -272,7 +322,17 @@ class _EmployeeCardState extends State<EmployeeCard> {
                     ],
                   ),
                 ),
-                const Icon(Icons.more_horiz, color: Color(0xFF94A3B8)),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddEmployeeScreen(isEdit: true, model: widget.emp),
+                      ),
+                    );
+                  },
+                  child: Icon(Icons.more_horiz, color: Color(0xFF94A3B8)),
+                ),
               ],
             ),
 
@@ -282,8 +342,8 @@ class _EmployeeCardState extends State<EmployeeCard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _infoRow(Icons.call, widget.phone),
-                _infoRow(Icons.cake, widget.dob),
+                _infoRow(Icons.call, widget.emp.mobile),
+                _infoRow(Icons.cake, widget.emp.dob),
               ],
             ),
 
@@ -291,7 +351,7 @@ class _EmployeeCardState extends State<EmployeeCard> {
             const Divider(color: Color(0xFFE2E8F0)),
 
             const SizedBox(height: 10),
-            _infoRow(Icons.location_on, widget.address),
+            _infoRow(Icons.location_on, widget.emp.address),
             const SizedBox(height: 15),
             Row(
               children: [
@@ -327,7 +387,7 @@ class _EmployeeCardState extends State<EmployeeCard> {
               duration: const Duration(milliseconds: 250),
               child: isExpanded
                   ? Text(
-                      widget.remark,
+                      widget.emp.remark,
                       style: GoogleFonts.manrope(
                         fontSize: 12,
                         fontStyle: FontStyle.italic,
