@@ -66,8 +66,6 @@ class _CheckLoginState extends State<CheckLogin>
 
   void _startAnimation() {
     final size = MediaQuery.of(context).size;
-
-    // Big enough to cover entire screen diagonally
     final double maxSize = 400;
 
     _animation = Tween<double>(

@@ -12,7 +12,6 @@ class EmployeeLoginScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          /// Screen Content
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -91,13 +90,7 @@ class EmployeeLoginScreen extends StatelessWidget {
             BoxShadow(color: Colors.black.withOpacity(0.09), blurRadius: 32),
           ],
         ),
-        child: Column(
-          children: [
-            googleTile(context: context),
-            SizedBox(height: 16),
-            appleTile(),
-          ],
-        ),
+        child: Column(children: [googleTile(context: context)]),
       ),
     );
   }
@@ -130,24 +123,6 @@ class EmployeeLoginScreen extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Colors.grey[700],
         ),
-      ),
-    );
-  }
-
-  appleTile() {
-    return ElevatedButton.icon(
-      onPressed: () {},
-      icon: const Icon(Icons.apple),
-      label: Text(
-        "Login with Apple",
-        style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold),
-      ),
-      style: ElevatedButton.styleFrom(
-        elevation: 8,
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 56),
-        shape: const StadiumBorder(),
       ),
     );
   }

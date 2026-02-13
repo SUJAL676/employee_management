@@ -55,7 +55,6 @@ class DatabaseHelper {
     ''');
   }
 
-  /// INSERT
   Future<void> insertEmployee(EmployeeModel employee) async {
     final db = await instance.database;
 
@@ -66,7 +65,6 @@ class DatabaseHelper {
     );
   }
 
-  /// GET ALL
   Future<List<EmployeeModel>> getAllEmployees() async {
     final db = await instance.database;
 
@@ -75,7 +73,6 @@ class DatabaseHelper {
     return result.map((e) => EmployeeModel.fromMap(e)).toList();
   }
 
-  /// UPDATE
   Future<int> updateEmployee(EmployeeModel employee) async {
     final db = await instance.database;
 
@@ -87,7 +84,6 @@ class DatabaseHelper {
     );
   }
 
-  /// DELETE
   Future<int> deleteEmployee(String empCode) async {
     final db = await instance.database;
 

@@ -89,10 +89,14 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       avatar: widget.isEdit ? widget.model!.avatar : avatarAssign(),
     );
 
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => Loadingscreen(field: "edit",model: employee,)));
-
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Loadingscreen(
+          field: widget.isEdit ? "edit" : "add",
+          model: employee,
+        ),
+      ),
+    );
   }
 
   assignValues() {
@@ -212,7 +216,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
   }
 
-  /// HEADER
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -235,7 +238,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
   }
 
-  /// GLASS FORM
   Widget _buildGlassForm() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -293,7 +295,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     }
   }
 
-  /// FLOATING FIELD
   Widget _floatingField(
     String label,
     TextEditingController controller, {
@@ -399,7 +400,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
   }
 
-  /// BUTTON
   Widget _buildButton() {
     return GestureDetector(
       onTap: () => _add_edit_Employee(),
@@ -446,11 +446,21 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           ),
         ),
 
-        buttonTile(
-          width: 165,
-          text: "Delete",
-          color: Colors.white,
-          textColor: Colors.red,
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    Loadingscreen(field: "delete", model: widget.model),
+              ),
+            );
+          },
+          child: buttonTile(
+            width: 165,
+            text: "Delete",
+            color: Colors.white,
+            textColor: Colors.red,
+          ),
         ),
       ],
     );
@@ -491,7 +501,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
   }
 
-  /// GLASS DECORATION
   BoxDecoration _glassDecoration() {
     return BoxDecoration(
       color: Colors.white.withOpacity(0.85),

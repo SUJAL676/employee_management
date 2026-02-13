@@ -16,12 +16,11 @@ class Loadingscreen extends StatefulWidget {
 class _LoadingscreenState extends State<Loadingscreen> {
   delete() async {
     try {
-
       await Future.delayed(const Duration(milliseconds: 400));
 
       DatabaseHelper.instance.deleteEmployee(widget.model!.empCode);
 
-    //  DatabaseHelper.instance.fecthList(context: context); 
+      await DatabaseHelper.instance.fecthList(context: context);
 
       Navigator.pop(context);
       Navigator.pop(context);
@@ -31,40 +30,37 @@ class _LoadingscreenState extends State<Loadingscreen> {
   }
 
   edit_add() async {
-
     bool isEdit = widget.field == "edit";
 
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 600));
 
       await isEdit
           ? DatabaseHelper.instance.updateEmployee(widget.model!)
           : DatabaseHelper.instance.insertEmployee(widget.model!);
 
-      // DatabaseHelper.instance.fecthList(context: context); 
+      await DatabaseHelper.instance.fecthList(context: context);
 
       Navigator.pop(context);
       Navigator.pop(context);
-    } catch (e) 
-    {
+    } catch (e) {
       Navigator.pop(context);
-      
     }
   }
 
   @override
   void initState() {
-
-    switch (widget.field) 
-    {
-      case "edit" or "add":
+    switch (widget.field) {
+      case "edit":
         edit_add();
         break;
 
+      case "add":
+        edit_add();
+
       case "delete":
         delete();
-        break;  
-
+        break;
     }
 
     super.initState();

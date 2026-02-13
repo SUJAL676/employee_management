@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
-// Google Sign-In Service Class
 class GoogleSignInService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -44,7 +43,6 @@ class GoogleSignInService {
       final User? user = userCredential.user;
 
       if (user != null) {
-        // 🔥 Save user data to Realtime Database
         final DatabaseReference ref = FirebaseDatabase.instance.ref(
           "users/${user.uid}",
         );
@@ -65,7 +63,6 @@ class GoogleSignInService {
       );
       provider.initialCredentials(cred: user!);
 
-      // return userCredential;
       return "Sucess";
     } catch (e) {
       print('Error: $e');
@@ -73,7 +70,6 @@ class GoogleSignInService {
     }
   }
 
-  // Sign out
   static Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
@@ -84,7 +80,6 @@ class GoogleSignInService {
     }
   }
 
-  // Get current user
   static User? getCurrentUser() {
     return _auth.currentUser;
   }

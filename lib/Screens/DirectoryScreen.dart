@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:employee_management/Screens/AddEmployee.dart';
+import 'package:employee_management/Screens/checkLogin.dart';
 import 'package:employee_management/models/EmployeeModel.dart';
 import 'package:employee_management/providers/employee_provider.dart';
+import 'package:employee_management/services/auth_service.dart';
 import 'package:employee_management/services/employee_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -91,7 +93,52 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
               ),
             ),
             _buildFAB(context),
+            _logOutButton(context: context),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _logOutButton({required BuildContext context}) {
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: GestureDetector(
+        onTap: () async {
+          await GoogleSignInService.signOut();
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => CheckLogin()),
+          );
+        },
+        child: Container(
+          width: width,
+          height: height * 0.07,
+          margin: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: const Color(0xFF2196F3),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2196F3).withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              "Log Out",
+              style: GoogleFonts.manrope(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -184,36 +231,6 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
     );
   }
 
-  // Widget _buildSearchBar() {
-  //   return ClipRRect(
-  //     borderRadius: BorderRadius.circular(40),
-  //     child: Container(
-  //       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-  //       decoration: BoxDecoration(
-  //         color: Colors.white.withOpacity(0.7),
-  //         borderRadius: BorderRadius.circular(40),
-  //         border: Border.all(color: const Color(0xFF2196F3).withOpacity(0.12)),
-  //       ),
-  //       child: Row(
-  //         children: [
-  //           const Icon(Icons.search, color: Color(0xFF2196F3)),
-  //           const SizedBox(width: 12),
-  //           Expanded(
-  //             child: Text(
-  //               "Search name, code, or role...",
-  //               style: GoogleFonts.manrope(
-  //                 fontSize: 14,
-  //                 color: const Color(0xFF718096),
-  //               ),
-  //             ),
-  //           ),
-  //           const Icon(Icons.tune, color: Color(0xFF94A3B8)),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildFAB(BuildContext context) {
     return Positioned(
       bottom: 110,
@@ -273,10 +290,10 @@ class _EmployeeCardState extends State<EmployeeCard> {
               children: [
                 Stack(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 28,
-                      backgroundImage: NetworkImage(
-                        "https://i.pravatar.cc/300",
+                      backgroundImage: AssetImage(
+                        "assets/avatars/avatar${widget.emp.avatar}.png",
                       ),
                     ),
                     Positioned(
